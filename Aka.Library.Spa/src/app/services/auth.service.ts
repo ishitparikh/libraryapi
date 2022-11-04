@@ -28,6 +28,7 @@ export class AuthService {
       .pipe(
         tap(res => {
           this.isAuthenticated = res !== null;
+          this.loggedIn.next(this.isAuthenticated);
           this.currentMember = res;
         })
       );

@@ -4,11 +4,13 @@ import { Book } from '../shared/book';
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { SignedOutBook } from '../shared/signed-out-book';
-import { map } from 'lodash';
 import { GoogleBooksMetadata } from '../shared/google-books-metadata';
 import { Observable } from 'rxjs/internal/Observable';
 import { throwError } from 'rxjs/internal/observable/throwError';
 import { of } from 'rxjs/internal/observable/of';
+import { map } from 'rxjs/operators';
+import { pipe } from 'rxjs';
+import { GoogleBookInfo } from '../shared/googleBookInfo';
 
 @Injectable()
 export class BooksService {
@@ -91,10 +93,12 @@ export class BooksService {
    */
   getBookMetaData(isbn: string): Observable<GoogleBooksMetadata> {
     // TODO: Add implementation
-    const url = `https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}&key=${this.googleBooksAPIKey}`;
+    const url = `https://www.googleapis.com/books/v1/volumes?q=p1v6DwAAQBAJ&key=${this.googleBooksAPIKey}`;
 
-    // return this.http.get(url);
-    return throwError('Funtion not implemented');
+    return this.http.get<GoogleBookInfo>(url)
+    .pipe(
+      map(item => item.volumeInfo)
+    );
 
   }
 

@@ -8,6 +8,7 @@ import { Member } from '../interfaces/member';
 import { switchMap, tap } from 'rxjs/operators';
 import { AuthService } from '../../services/auth.service';
 import { MemberBook } from '../interfaces/member-book';
+import { SignedOutBook } from '../../shared/signed-out-book';
 
 @Component({
   selector: 'app-member-details',
@@ -26,8 +27,8 @@ export class MemberDetailsComponent implements OnInit {
   postalCode: string;
   memberForm: FormGroup;
   member$: Observable<Member>;
-  bookhistory$: Observable<MemberBook[]>;
-  signedout$: Observable<MemberBook[]>;
+  bookhistory$: Observable<SignedOutBook[]>;
+  signedout$: Observable<SignedOutBook[]>;
 
   constructor(
     private route: ActivatedRoute,
@@ -55,6 +56,8 @@ export class MemberDetailsComponent implements OnInit {
           this.postalCode = m.postalCode;
         })
       );
+      this.signedout$ = this.service.getSignedOutBooks(this.auth.currentMember);
+      this.bookhistory$ = this.service.getMemberBookHistory(this.auth.currentMember);
   }
 
   onSubmit() {
@@ -78,5 +81,4 @@ export class MemberDetailsComponent implements OnInit {
     this.lastName = m.fullName.split(' ')[1];
     this.postalCode = m.postalCode;
   }
-
 }

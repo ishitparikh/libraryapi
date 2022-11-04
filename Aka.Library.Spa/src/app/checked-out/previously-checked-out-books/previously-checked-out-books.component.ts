@@ -14,21 +14,20 @@ import { BooksService } from '../../services/books.service';
 import { slideInDownAnimation } from '../../animations';
 
 @Component({
-  selector: 'app-checked-out-books',
-  templateUrl: './checked-out-books.component.html',
-  styleUrls: ['./checked-out-books.component.scss'],
+  selector: 'app-previously-checked-out-books',
+  templateUrl: './previously-checked-out-books.component.html',
+  styleUrls: ['./previously-checked-out-books.component.scss'],
   animations: [slideInDownAnimation]
 })
-export class CheckedOutBooksComponent implements OnInit {
+export class PreviouslyCheckedOutBooksComponent implements OnInit {
   @Input('member-books') books: Observable<SignedOutBook[]>;
   @HostBinding('@routeAnimation') routeAnimation = true;
   @HostBinding('style.display')   display = 'block';
   @HostBinding('style.position')  position = 'initial';
 
-  displayedColumns = ['id', 'library', 'title', 'dateCheckedOut', 'action'];
+  displayedColumns = ['id', 'library', 'title', 'dateCheckedOut', 'dateReturn', 'action'];
   dataSource = new MatTableDataSource();
   selection = new SelectionModel<Element>(true, []);
-  
 
   @ViewChild(MatSort, { static: true }) sort: MatSort;
   @ViewChild(MatPaginator, { static: true }) paginator: MatPaginator;
@@ -47,7 +46,8 @@ export class CheckedOutBooksComponent implements OnInit {
   }
 
   ngOnInit() {
-    (this.books ? this.books : this.memberService.getSignedOutBooks(this.authService.currentMember))
+    
+    (this.books ? this.books : this.memberService.getMemberBookHistory(this.authService.currentMember))
       .pipe(
         map((signedOutBooks: SignedOutBook []) => {
           const obss = signedOutBooks.map(signedOutBook => forkJoin([
@@ -65,10 +65,6 @@ export class CheckedOutBooksComponent implements OnInit {
       });
   }
 
-  selectRow(book: SignedOutBookDetails) {
-    this.router.navigate([`/libraries/${book.libraryId}/books/${book.bookId}`]);
-  }
-
   /**
    * Set the sort after the view init since this component will
    * be able to query its view for the initialized sort.
@@ -77,4 +73,5 @@ export class CheckedOutBooksComponent implements OnInit {
     this.dataSource.sort = this.sort;
     this.dataSource.paginator = this.paginator;
   }
+
 }

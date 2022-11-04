@@ -19,6 +19,10 @@
             routerLinkActive="active">Checked Out</button>
         </li>
         <li class="nav-item">
+          <button class="nav-link" *ngIf="isLoggedIn$ | async" mat-button [routerLink]="['checked-out/previously-checkedout']"
+            routerLinkActive="active">Previously Checked Out</button>
+        </li>
+        <li class="nav-item">
           <button class="nav-link" *ngIf="isLoggedIn$ | async" mat-button [routerLink]="['checked-out/history']"
             routerLinkActive="active">History</button>
         </li>
