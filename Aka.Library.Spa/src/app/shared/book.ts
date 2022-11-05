@@ -5,4 +5,5 @@ export interface Book {
   dateOfPublication: Date;
   isAvailable?: boolean;
   isCheckedOut?: boolean;
+  availableForCheckout?: number;
 }

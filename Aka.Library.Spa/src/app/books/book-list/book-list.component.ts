@@ -7,7 +7,7 @@ import { forkJoin } from 'rxjs';
 import { Book } from '../../shared/book';
 import { slideInDownAnimation } from '../../animations';
 import { Router, ActivatedRoute } from '@angular/router';
-import { map as lmap, unionBy } from 'lodash';
+import { filter, map as lmap, tap, unionBy } from 'lodash';
 import { map } from 'rxjs/operators';
 
 @Component({
@@ -22,7 +22,7 @@ export class BookListComponent implements OnInit, AfterViewInit {
   @HostBinding('style.position')  position = 'initial';
 
   currentLibrary: Library;
-  displayedColumns = ['bookId', 'title', 'isbn', 'dateOfPublication', 'availability'];
+  displayedColumns = ['bookId', 'title', 'isbn', 'dateOfPublication', 'availability', 'availableForCheckout'];
   dataSource = new MatTableDataSource();
   selection = new SelectionModel<Element>(true, []);
 
@@ -36,11 +36,25 @@ export class BookListComponent implements OnInit, AfterViewInit {
     if (value != null) {
       forkJoin([
         this.books.getBooks(this.currentLibrary.libraryId),
-        this.books.getAvailableBooks(this.currentLibrary.libraryId)
+        this.books.getAvailableBooks(this.currentLibrary.libraryId),
+        this.books.getCheckedOutBooks(this.currentLibrary.libraryId)
       ])
         .pipe(
-          map(([books, availableBooks]) => {
-            return unionBy(lmap(availableBooks, (book: Book) => ({ ...book, isAvailable: true })), books, 'bookId');
+          map(([books, availableBooks, checkedoutBooks]) => {
+            let bookList = unionBy(availableBooks, books.map(x => x.book), 'bookId');
+            books.forEach((element) => {
+              let checkedOutNumber = filter(checkedoutBooks, (checkedOut) => checkedOut.bookId == element.book.bookId).length;
+              bookList = bookList.map(book => {
+                if(book.bookId === element.book.bookId){
+                  book.availableForCheckout = (element.totalPurchasedByLibrary - checkedOutNumber);
+                  book.isAvailable = book.availableForCheckout > 0;
+                }
+
+                return book;
+              });
+            });
+            
+            return bookList;
           })
         )
         .subscribe((books: Book []) => {

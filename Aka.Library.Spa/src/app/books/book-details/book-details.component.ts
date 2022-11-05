@@ -91,14 +91,19 @@ export class BookDetailsComponent implements OnInit {
    */
   getBookDetails(libraryId: number, bookId: number) {
     forkJoin([
+      this.books.getBooks(libraryId),
       this.books.getBook(libraryId, bookId),
-      this.books.getNumberOfAvailableBookCopies(libraryId, bookId),
+      this.books.getCheckedOutBooks(libraryId),
       this.memberService.getSignedOutBooks(this.authService.currentMember)
     ]).pipe(
       take(1),
-      tap(([book, numberOfAvailableCopies, signedOutBooks]) => {
+      tap(([books, book, checkedoutBooks, signedOutBooks]) => {
         this.numBooksSignedOut = signedOutBooks.length;
-        this.numBooksAvailable = numberOfAvailableCopies;
+
+        let libraryBook = filter(books, (lb) => lb.book.bookId == book.bookId)[0];
+        let checkedoutBookCount = filter(checkedoutBooks, (checkedOut) => checkedOut.bookId == book.bookId).length;
+        book.availableForCheckout = libraryBook.totalPurchasedByLibrary - checkedoutBookCount;
+        
         this.numOfThisBookSignedOutByUser = filter(signedOutBooks, (signedOutBook) => signedOutBook.bookId === book.bookId).length;
         const isbn = book.isbn;
         this.books.getBookMetaData(isbn)
@@ -107,8 +112,8 @@ export class BookDetailsComponent implements OnInit {
             this.bookMetadata = bookMetadata;
           });
       }),
-      map(([book, numberOfAvailableCopies, signedOutBooks]) => {
-        const areBooksAvailable = numberOfAvailableCopies > 0;
+      map(([books, book, checkedoutBooks, signedOutBooks]) => {
+        const areBooksAvailable = book.availableForCheckout > 0;
         const hasUserCheckedThisBookOut = !!find(signedOutBooks, { bookId: book.bookId });
         return { ...book, isAvailable: areBooksAvailable, isCheckedOut: hasUserCheckedThisBookOut };
       }),
